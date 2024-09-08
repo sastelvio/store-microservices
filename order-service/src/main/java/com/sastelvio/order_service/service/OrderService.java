@@ -43,7 +43,7 @@ public class OrderService {
         //SYNC REQUEST
         InventoryResponse[] inventoryResponses = webClient.get()
                 .uri(
-                        "http://localhost:8082/api/inventory",
+                        "http://inventory-service/api/inventory",
                         uriBuilder -> uriBuilder
                                 .queryParam("skuCode", skuCodes)
                                 .build()
