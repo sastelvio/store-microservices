@@ -7,6 +7,7 @@ import com.sastelvio.order_service.model.Order;
 import com.sastelvio.order_service.model.OrderLineItems;
 import com.sastelvio.order_service.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -21,7 +22,9 @@ import java.util.UUID;
 @Transactional
 public class OrderService {
     private final OrderRepository repository;
-    private final WebClient webClient;
+
+    @Autowired
+    private WebClient.Builder webClientBuilder;
 
     public void placeOrder(OrderRequest request){
         Order order = new Order();
@@ -41,7 +44,7 @@ public class OrderService {
 
         //CHECK THE STOCK USING INVENTORY SERVICE, IF THE PRODUCT IS IN STOCK, PLACE THE ORDER
         //SYNC REQUEST
-        InventoryResponse[] inventoryResponses = webClient.get()
+        InventoryResponse[] inventoryResponses = webClientBuilder.build().get()
                 .uri(
                         "http://inventory-service/api/inventory",
                         uriBuilder -> uriBuilder
