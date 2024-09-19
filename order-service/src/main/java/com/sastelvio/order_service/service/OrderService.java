@@ -3,11 +3,14 @@ package com.sastelvio.order_service.service;
 import com.sastelvio.order_service.dto.InventoryResponse;
 import com.sastelvio.order_service.dto.OrderLineItemsDto;
 import com.sastelvio.order_service.dto.OrderRequest;
+import com.sastelvio.order_service.event.OrderPlacedEvent;
 import com.sastelvio.order_service.model.Order;
 import com.sastelvio.order_service.model.OrderLineItems;
 import com.sastelvio.order_service.repository.OrderRepository;
+import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -22,6 +25,7 @@ import java.util.UUID;
 @Transactional
 public class OrderService {
     private final OrderRepository repository;
+    private final KafkaTemplate<String, OrderPlacedEvent> kafka;
 
     @Autowired
     private WebClient.Builder webClientBuilder;
@@ -60,6 +64,7 @@ public class OrderService {
 
         if(allProductsInStock){
             repository.save(order);
+            kafka.send("notificationTopic", new OrderPlacedEvent(order.getOrderNumber()));
             return "Order placed Successfully!";
         }else{
             throw new IllegalArgumentException("Product doesn't have stock!");
